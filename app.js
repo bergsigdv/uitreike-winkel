@@ -156,7 +156,7 @@ function setupEventListeners() {
     });
 
     // Vul asseblief hierdie skakel in na die Apps Script Web App ontplooi is:
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyoQcPhIMwVF9X_Q_frDd5I369DXjGQ__xOtRHYLsA50WJJbrujCrtM0DWwbB-bI_lcGQ/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxh1hfeVlbTHuJB-1LW_zlEbvLRxMTtlIu3zAWufAV6Kip5meqDzHCGveB5H96bWZsNTQ/exec";
 
     // Haal voorraad op met JSONP
     window.updateStockUI = function (sheetData) {
@@ -166,7 +166,7 @@ function setupEventListeners() {
 
         // As daar 'n fout is
         if (sheetData.error) {
-            document.getElementById('loading-message').textContent = "Kon nie spyskaart laai nie.";
+            document.getElementById('loading-message').textContent = "Kon nie produklys laai nie.";
             return;
         }
 
