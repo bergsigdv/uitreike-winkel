@@ -156,7 +156,7 @@ function setupEventListeners() {
     });
 
     // Vul asseblief hierdie skakel in na die Apps Script Web App ontplooi is:
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxh1hfeVlbTHuJB-1LW_zlEbvLRxMTtlIu3zAWufAV6Kip5meqDzHCGveB5H96bWZsNTQ/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/library/d/1S6F1gECQMCCdWWBmgxkMR0ODVH6AI8LqXA2MyVxUyRo7W0vnnbKjG37d/7";
 
     // Haal voorraad op met JSONP
     window.updateStockUI = function (sheetData) {

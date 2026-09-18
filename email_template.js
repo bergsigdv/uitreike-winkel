@@ -38,7 +38,7 @@ function doGet(e) {
 
       let colAktief = headers.indexOf("aktief");
 
-      const baseUrl = "https://raw.githubusercontent.com/bergsigdv/vinkel-en-koljander-etes/master/images/";
+      const baseUrl = "https://raw.githubusercontent.com/bergsigdv/uitreike-winkel/master/images/";
 
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
@@ -112,7 +112,7 @@ function doGet(e) {
   }
 
   // -- HAAL PREFIX OP --
-  let prefix = "Vinkel";
+  let prefix = "Uitreike";
   let settingsSheet = sheet.getSheetByName("Stellings");
   if (settingsSheet) {
     const val = settingsSheet.getRange("A2").getValue();
@@ -184,9 +184,9 @@ function doGet(e) {
 function stuurPragtigeEpos(orderNumber, data, customPrefix) {
   var to = data.email;
 
-  var prefix = customPrefix || "Vinkel";
+  var prefix = customPrefix || "Uitreike";
   var verwysing = prefix + orderNumber;
-  var subject = "Jou Bestelling by Vinkel en Koljander (#" + verwysing + ")";
+  var subject = "Jou Bestelling by die Uitreike Winkel (#" + verwysing + ")";
 
   // Fallbacks as sekere inligting dalk nie verskaf is nie
   var pickup = data.pickupTime || "Nie gespesifiseer nie";
@@ -258,7 +258,7 @@ function stuurPragtigeEpos(orderNumber, data, customPrefix) {
       
       <!-- Koplosie (Header) -->
       <div style="background-color: #2c3e50; color: #ffffff; padding: 30px 20px; text-align: center;">
-        <h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: 1px;">Vinkel en Koljander</h1>
+        <h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: 1px;">Uitreike Winkel</h1>
         <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Jou bespreking is bevestig!</p>
       </div>
       
@@ -352,6 +352,6 @@ function toetsMyEpos() {
 
   var dummyBestelNommer = 9999;
 
-  // Roep jou nuwe pragtige e-pos funksie (prefix = Vinkel)
-  stuurPragtigeEpos(dummyBestelNommer, dummyData, "Vinkel");
+  // Roep jou nuwe pragtige e-pos funksie (prefix = Uitreike)
+  stuurPragtigeEpos(dummyBestelNommer, dummyData, "Uitreike");
 }
