@@ -21,6 +21,11 @@ const closeSuccessBtn = document.getElementById('close-success-btn');
 function init() {
     setupEventListeners();
     updateCartUI();
+    // Herteken dinamiese inhoud wanneer taal verander
+    document.addEventListener('langchange', () => {
+        updateCartUI();
+        if (window.lastSheetData) window.renderOptions(window.lastSheetData);
+    });
 }
 
 // Render products
@@ -40,16 +45,16 @@ function renderProducts(dynamicProducts = []) {
 
         let bannerHtml = '';
         if (isOrdersClosed) {
-            bannerHtml = '<div class="closed-banner">GESLUIT</div>';
+            bannerHtml = `<div class="closed-banner">${t('closedBanner')}</div>`;
         } else if (isSoldOut) {
-            bannerHtml = '<div class="sold-out-banner">Uitverkoop</div>';
+            bannerHtml = `<div class="sold-out-banner">${t('soldOut')}</div>`;
         }
 
         let footerHtml = '';
         if (isOrdersClosed) {
-            footerHtml = `<button class="add-to-cart" disabled>Gesluit</button>`;
+            footerHtml = `<button class="add-to-cart" disabled>${t('closed')}</button>`;
         } else if (isSoldOut) {
-            footerHtml = `<button class="add-to-cart" disabled>Uitverkoop</button>`;
+            footerHtml = `<button class="add-to-cart" disabled>${t('soldOut')}</button>`;
         } else if (currentQty > 0) {
             footerHtml = `
                 <div class="inline-qty-controls">
@@ -59,7 +64,7 @@ function renderProducts(dynamicProducts = []) {
                 </div>
             `;
         } else {
-            footerHtml = `<button class="add-to-cart" data-id="${product.id}">Kies</button>`;
+            footerHtml = `<button class="add-to-cart" data-id="${product.id}">${t('choose')}</button>`;
         }
 
         const shouldGrayOut = isSoldOut || isOrdersClosed;
@@ -127,13 +132,13 @@ function setupEventListeners() {
     // Open Checkout
     checkoutBtn.addEventListener('click', () => {
         if (cart.length === 0) {
-            alert("U mandjie is tans leeg. Voeg asseblief etes by om voort te gaan.");
+            alert(t('emptyCartAlert'));
             return;
         }
 
         // Verander knoppie teks om te wys ons laai
         const originalText = checkoutBtn.textContent;
-        checkoutBtn.textContent = "Kontroleer voorraad...";
+        checkoutBtn.textContent = t('checkingStock');
         checkoutBtn.style.opacity = "0.7";
         checkoutBtn.disabled = true;
 
@@ -166,7 +171,7 @@ function setupEventListeners() {
 
         // As daar 'n fout is
         if (sheetData.error) {
-            document.getElementById('loading-message').textContent = "Kon nie produklys laai nie.";
+            document.getElementById('loading-message').textContent = t('loadFailed');
             return;
         }
 
@@ -205,6 +210,27 @@ function setupEventListeners() {
 
         dynamicProducts.sort((a, b) => a.order - b.order);
 
+        window.lastSheetData = sheetData;
+        window.renderOptions(sheetData);
+
+        // Teken slegs die beskikbare produkte in die regte volgorde
+        renderProducts(dynamicProducts);
+
+        // Versteek die laai boodskap en wys die grid
+        const loadingMsg = document.getElementById('loading-message');
+        if (loadingMsg) loadingMsg.style.display = 'none';
+
+        const grid = document.getElementById('products-grid');
+        if (grid) grid.style.display = 'grid';
+
+        handleCheckoutValidation(dynamicProducts);
+    };
+
+    // Populeer afhaaltye en betaalopsies (behou gekose waardes)
+    window.renderOptions = function (sheetData) {
+        const prevPickup = document.querySelector('input[name="pickup-time"]:checked')?.value;
+        const prevPayment = document.querySelector('input[name="payment-option"]:checked')?.value;
+
         // Populeer die Tye opsies as radio buttons
         const pickupContainer = document.getElementById('pickup-time-container');
         if (pickupContainer) {
@@ -220,6 +246,7 @@ function setupEventListeners() {
                     input.value = tyd;
                     input.id = 'pickup-time-' + index;
                     input.required = true;
+                    if (tyd === prevPickup) input.checked = true;
 
                     const label = document.createElement('label');
                     label.htmlFor = 'pickup-time-' + index;
@@ -230,7 +257,7 @@ function setupEventListeners() {
                     pickupContainer.appendChild(wrapper);
                 });
             } else {
-                pickupContainer.innerHTML = '<p style="color: #666; font-size: 0.9em; margin: 0;">Geen afhaaltye beskikbaar nie.</p>';
+                pickupContainer.innerHTML = '<p style="color: #666; font-size: 0.9em; margin: 0;">' + t('noPickup') + '</p>';
             }
         }
 
@@ -249,6 +276,7 @@ function setupEventListeners() {
                     input.value = opsie;
                     input.id = 'payment-option-' + index;
                     input.required = true;
+                    if (opsie === prevPayment) input.checked = true;
 
                     const label = document.createElement('label');
                     label.htmlFor = 'payment-option-' + index;
@@ -259,48 +287,40 @@ function setupEventListeners() {
                     paymentContainer.appendChild(wrapper);
                 });
             } else {
-                paymentContainer.innerHTML = '<p style="color: #666; font-size: 0.9em; margin: 0;">Geen betaalopsies beskikbaar nie.</p>';
+                paymentContainer.innerHTML = '<p style="color: #666; font-size: 0.9em; margin: 0;">' + t('noPayment') + '</p>';
             }
         }
+    };
 
-        // Teken slegs die beskikbare produkte in die regte volgorde
-        renderProducts(dynamicProducts);
-
-        // Versteek die laai boodskap en wys die grid
-        const loadingMsg = document.getElementById('loading-message');
-        if (loadingMsg) loadingMsg.style.display = 'none';
-
-        const grid = document.getElementById('products-grid');
-        if (grid) grid.style.display = 'grid';
-
+    function handleCheckoutValidation(dynamicProducts) {
         // As ons besig is om te checkout, doen die validasie NOU met die vars data
         if (window.isCheckingOut) {
             window.isCheckingOut = false; // Reset flag
 
             // Herstel die knoppie
-            checkoutBtn.textContent = "Gaan na Betaalpunt";
+            checkoutBtn.textContent = t('checkout');
             checkoutBtn.style.opacity = "1";
             checkoutBtn.disabled = false;
 
             let hasError = false;
-            let errorMsg = "Die volgende items se voorraad het intussen verander:\n\n";
+            let errorMsg = t('stockChanged') + "\n\n";
 
             cart.forEach(item => {
                 const productInfo = dynamicProducts.find(p => p.id === item.id);
                 if (productInfo && item.quantity > productInfo.stock) {
                     hasError = true;
                     if (productInfo.stock > 0) {
-                        errorMsg += `- ${item.name}: Jammer, daar is net ${productInfo.stock} beskikbaar en jy het ${item.quantity} bestel.\n`;
+                        errorMsg += t('onlyAvailable', { name: item.name, available: productInfo.stock, requested: item.quantity }) + "\n";
                         item.quantity = productInfo.stock;
                     } else {
-                        errorMsg += `- ${item.name}: Jammer, hierdie item het intussen heeltemal uitverkoop.\n`;
+                        errorMsg += t('nowSoldOut', { name: item.name }) + "\n";
                         item.quantity = 0;
                     }
                 }
             });
 
             if (hasError) {
-                alert(errorMsg + "\nOns het u mandjie outomaties aangepas na wat wel beskikbaar is.");
+                alert(errorMsg + "\n" + t('cartAdjusted'));
                 cart = cart.filter(item => item.quantity > 0);
                 updateCartUI();
                 return; // Stop die checkout proses
@@ -310,7 +330,7 @@ function setupEventListeners() {
             cartOverlay.classList.remove('active');
             checkoutOverlay.classList.add('active');
         }
-    };
+    }
 
     function fetchStock() {
         if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.includes("HIER_KOPPEL_ONS_DIE_SKAKEL")) return;
@@ -327,17 +347,17 @@ function setupEventListeners() {
         const submitBtn = checkoutForm.querySelector('button[type="submit"]');
 
         if (response.type === "stock_insufficient") {
-            let errorMsg = "Ongelukkig het die voorraad verander terwyl u die vorm ingevul het:\n\n";
+            let errorMsg = t('stockChangedForm') + "\n\n";
             // Dateer die mandjie aan met die regte syfers vanaf die server
             if (response.items) {
                 response.items.forEach(issue => {
                     const cartItem = cart.find(item => item.name === issue.name);
                     if (cartItem) {
                         if (issue.available > 0) {
-                            errorMsg += `- ${issue.name}: Jammer, daar is net ${issue.available} beskikbaar en jy het ${issue.requested} bestel.\n`;
+                            errorMsg += t('onlyAvailable', { name: issue.name, available: issue.available, requested: issue.requested }) + "\n";
                             cartItem.quantity = issue.available;
                         } else {
-                            errorMsg += `- ${issue.name}: Jammer, hierdie item is heeltemal uitverkoop.\n`;
+                            errorMsg += t('nowSoldOut', { name: issue.name }) + "\n";
                             cartItem.quantity = 0;
                         }
                     }
@@ -345,7 +365,7 @@ function setupEventListeners() {
                 cart = cart.filter(item => item.quantity > 0);
             }
 
-            alert(errorMsg + "\nOns het u mandjie outomaties aangepas. Gaan asseblief u mandjie na en probeer weer.");
+            alert(errorMsg + "\n" + t('cartAdjustedRetry'));
             updateCartUI();
 
             // Bring kliënt terug na die mandjie om aan te pas
@@ -355,7 +375,7 @@ function setupEventListeners() {
                 cartOverlay.classList.add('active');
             }
 
-            submitBtn.textContent = "Plaas Bestelling";
+            submitBtn.textContent = t('placeOrder');
             submitBtn.disabled = false;
 
             // Haal weer die voorraad om die 'Uitverkoop' banners te wys
@@ -364,8 +384,8 @@ function setupEventListeners() {
         }
 
         if (response.error) {
-            alert("Fout met bestelling: " + response.error);
-            submitBtn.textContent = "Plaas Bestelling";
+            alert(t('orderError') + response.error);
+            submitBtn.textContent = t('placeOrder');
             submitBtn.disabled = false;
             return;
         }
@@ -374,7 +394,7 @@ function setupEventListeners() {
             const orderNum = response.orderNumber;
             const orderNumberDisplay = document.getElementById('order-number-display');
             if (orderNumberDisplay) {
-                orderNumberDisplay.textContent = "Bestelnommer: " + orderNum;
+                orderNumberDisplay.textContent = t('orderNumber') + orderNum;
             }
 
             // Haal die prefix wat ons vroeër gestoor het
@@ -410,7 +430,7 @@ function setupEventListeners() {
             updateCartUI();
 
             // Herstel knoppie vir volgende keer
-            submitBtn.textContent = "Plaas Bestelling";
+            submitBtn.textContent = t('placeOrder');
             submitBtn.disabled = false;
         }
     };
@@ -443,7 +463,7 @@ function setupEventListeners() {
         // Disable knoppie
         const submitBtn = checkoutForm.querySelector('button[type="submit"]');
         const oldText = submitBtn.textContent;
-        submitBtn.textContent = "Stuur bestelling...";
+        submitBtn.textContent = t('sending');
         submitBtn.disabled = true;
 
         // Versamel vorm data
@@ -456,12 +476,13 @@ function setupEventListeners() {
             paymentOption: paymentOptionVal,
             orderSummary: summary,
             items: itemsList,
-            total: totalPrice
+            total: totalPrice,
+            lang: currentLang
         };
 
         // Stuur na Google Sheets met JSONP sodat ons die antwoord kan lees
         if (!GOOGLE_WEB_APP_URL || GOOGLE_WEB_APP_URL.includes("HIER_KOPPEL_ONS_DIE_SKAKEL")) {
-            alert("Wag asseblief vir admin om die Google skakel te koppel.");
+            alert(t('waitAdmin'));
             submitBtn.textContent = oldText;
             submitBtn.disabled = false;
             return;
@@ -475,7 +496,7 @@ function setupEventListeners() {
         const script = document.createElement('script');
         script.src = url.toString();
         script.onerror = function () {
-            alert("Daar was 'n fout om die bestelling te plaas. Probeer asseblief weer.");
+            alert(t('sendError'));
             submitBtn.textContent = oldText;
             submitBtn.disabled = false;
         };
@@ -502,13 +523,13 @@ function addToCart(id) {
     const existingItem = cart.find(item => item.id === id);
     if (existingItem) {
         if (existingItem.quantity + 1 > product.stock) {
-            alert(`Jammer, daar is slegs ${product.stock} beskikbaar van ${product.name}.`);
+            alert(t('onlyXOf', { stock: product.stock, name: product.name }));
             return;
         }
         existingItem.quantity += 1;
     } else {
         if (product.stock < 1) {
-            alert(`Jammer, ${product.name} is uitverkoop.`);
+            alert(t('isSoldOut', { name: product.name }));
             return;
         }
         cart.push({ ...product, quantity: 1 });
@@ -526,7 +547,7 @@ function updateQuantity(id, change) {
         if (change > 0 && window.currentDynamicProducts) {
             const productInfo = window.currentDynamicProducts.find(p => p.id === id);
             if (productInfo && newQty > productInfo.stock) {
-                alert(`Jammer, daar is slegs ${productInfo.stock} beskikbaar van ${item.name}.`);
+                alert(t('onlyXOf', { stock: productInfo.stock, name: item.name }));
                 return; // Moenie verder gaan nie
             }
         }
@@ -549,7 +570,7 @@ function updateCartUI() {
     cartItemsContainer.innerHTML = '';
 
     if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<div class="empty-cart"><p>Jou mandjie is leeg.</p></div>';
+        cartItemsContainer.innerHTML = `<div class="empty-cart"><p>${t('emptyCart')}</p></div>`;
         checkoutBtn.style.opacity = '0.5';
         checkoutBtn.style.cursor = 'not-allowed';
     } else {

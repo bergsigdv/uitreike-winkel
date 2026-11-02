@@ -20,7 +20,12 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <h1>Uitreike Winkel</h1>
+                <h1 data-i18n="title">Uitreike Winkel</h1>
+            </div>
+            <div class="lang-switch" id="lang-switch" role="group" aria-label="Taal / Language">
+                <span class="lang-icon" aria-hidden="true">🌐</span>
+                <button type="button" class="lang-btn" id="lang-af" data-lang="af">Afrikaans</button>
+                <button type="button" class="lang-btn" id="lang-en" data-lang="en">English</button>
             </div>
             <div class="cart-icon" id="cart-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -37,16 +42,16 @@
     <main>
         <section class="hero">
             <div class="hero-content">
-                <h2>Uitreike Winkel</h2>
-                <p>Plaas jou bestelling. (Let wel: Foto’s is slegs ter illustrasie)</p>
-                <a href="#menu" class="btn btn-primary">Kyk na die Produkte</a>
+                <h2 data-i18n="title">Uitreike Winkel</h2>
+                <p data-i18n="heroText">Plaas jou bestelling. (Let wel: Foto’s is slegs ter illustrasie)</p>
+                <a href="#menu" class="btn btn-primary" data-i18n="viewProducts">Kyk na die Produkte</a>
             </div>
         </section>
 
         <section id="menu" class="menu-section">
             <div class="container">
-                <h2 class="section-title">Beskikbare Produkte</h2>
-                <div id="loading-message"
+                <h2 class="section-title" data-i18n="availableProducts">Beskikbare Produkte</h2>
+                <div id="loading-message" data-i18n="loadingProducts"
                     style="text-align:center; padding: 50px; font-size: 1.2rem; color: var(--primary-color);">Besig om
                     die produklys en pryse te laai...</div>
                 <div class="products-grid" id="products-grid" style="display: none;">
@@ -60,7 +65,7 @@
     <div class="cart-overlay" id="cart-overlay">
         <div class="cart-modal">
             <div class="cart-header">
-                <h2>U Bestelling</h2>
+                <h2 data-i18n="yourOrder">U Bestelling</h2>
                 <button class="close-cart" id="close-cart">&times;</button>
             </div>
             <div class="cart-items" id="cart-items">
@@ -68,10 +73,10 @@
             </div>
             <div class="cart-footer">
                 <div class="cart-total">
-                    <span>Totaal:</span>
+                    <span data-i18n="total">Totaal:</span>
                     <span id="cart-total-price">R0.00</span>
                 </div>
-                <button class="btn btn-primary btn-block" id="checkout-btn">Gaan na Betaalpunt</button>
+                <button class="btn btn-primary btn-block" id="checkout-btn" data-i18n="checkout">Gaan na Betaalpunt</button>
             </div>
         </div>
     </div>
@@ -80,39 +85,39 @@
     <div class="checkout-overlay" id="checkout-overlay">
         <div class="checkout-modal">
             <div class="checkout-header">
-                <h2>Voltooi Bestelling</h2>
+                <h2 data-i18n="completeOrder">Voltooi Bestelling</h2>
                 <button class="close-checkout" id="close-checkout">&times;</button>
             </div>
             <form id="checkout-form" class="checkout-form">
                 <div class="form-group">
-                    <label for="name">Naam en Van</label>
+                    <label for="name" data-i18n="fullName">Naam en Van</label>
                     <input type="text" id="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">E-posadres</label>
+                    <label for="email" data-i18n="email">E-posadres</label>
                     <input type="email" id="email" required>
                 </div>
                 <div class="form-group">
-                    <label for="phone">Selfoonnommer</label>
+                    <label for="phone" data-i18n="phone">Selfoonnommer</label>
                     <input type="tel" id="phone" required>
                 </div>
                 <div class="form-group">
-                    <label>Kies Afhaaltyd</label>
+                    <label data-i18n="choosePickup">Kies Afhaaltyd</label>
                     <div id="pickup-time-container" class="radio-group">
-                        <p style="color: #666; font-size: 0.9em; margin: 0;">Besig om tye te laai...</p>
+                        <p data-i18n="loadingTimes" style="color: #666; font-size: 0.9em; margin: 0;">Besig om tye te laai...</p>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Kies Betaalopsie</label>
+                    <label data-i18n="choosePayment">Kies Betaalopsie</label>
                     <div id="payment-option-container" class="radio-group">
-                        <p style="color: #666; font-size: 0.9em; margin: 0;">Besig om opsies te laai...</p>
+                        <p data-i18n="loadingOptions" style="color: #666; font-size: 0.9em; margin: 0;">Besig om opsies te laai...</p>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="notes">Notas</label>
+                    <label for="notes" data-i18n="notes">Notas</label>
                     <textarea id="notes" rows="3"></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Plaas Bestelling</button>
+                <button type="submit" class="btn btn-primary btn-block" data-i18n="placeOrder">Plaas Bestelling</button>
             </form>
             <div id="order-success" class="order-success hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
@@ -120,46 +125,47 @@
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                <h3>Baie Dankie!</h3>
-                <p>U bestelling is suksesvol geplaas.</p>
+                <h3 data-i18n="thankYou">Baie Dankie!</h3>
+                <p data-i18n="orderPlaced">U bestelling is suksesvol geplaas.</p>
                 <p id="order-number-display"
                     style="font-size: 1.2rem; font-weight: bold; color: var(--primary-color); margin-bottom: 15px;"></p>
 
-                <h4 style="margin: 20px 0 10px 0; color: #333;">Hoe wil u betaal?</h4>
+                <h4 data-i18n="howPay" style="margin: 20px 0 10px 0; color: #333;">Hoe wil u betaal?</h4>
 
                 <div
                     style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd;">
-                    <h5 style="margin-top: 0; color: #00879e;">Opsie 1: SnapScan</h5>
-                    <img id="snapscan-qr" src="" alt="SnapScan QR Kode"
+                    <h5 data-i18n="option1" style="margin-top: 0; color: #00879e;">Opsie 1: SnapScan</h5>
+                    <img id="snapscan-qr" src="" alt="SnapScan QR Kode" data-i18n-alt="snapAlt"
                         style="max-width: 150px; margin: 10px auto; display: none;">
-                    <a id="snapscan-link" href="#" target="_blank" class="btn btn-primary btn-block"
+                    <a id="snapscan-link" href="#" target="_blank" data-i18n="paySnapScan" class="btn btn-primary btn-block"
                         style="background-color: #0072CE; margin-top: 10px;">Betaal met SnapScan App</a>
                 </div>
 
                 <div
                     style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; text-align: left; font-size: 0.9rem;">
-                    <h5 style="margin-top: 0; color: #00879e; text-align: center;">Opsie 2: EFT</h5>
-                    <p style="margin: 5px 0;"><strong>Naam:</strong> Durbanville Bergsig</p>
+                    <h5 data-i18n="option2" style="margin-top: 0; color: #00879e; text-align: center;">Opsie 2: EFT</h5>
+                    <p style="margin: 5px 0;"><strong data-i18n="eftName">Naam:</strong> Durbanville Bergsig</p>
                     <p style="margin: 5px 0;"><strong>Bank:</strong> ABSA Durbanville</p>
-                    <p style="margin: 5px 0;"><strong>Tak kode:</strong> 334810</p>
-                    <p style="margin: 5px 0;"><strong>Tipe Rekening:</strong> Tjek</p>
-                    <p style="margin: 5px 0;"><strong>Rekening nommer:</strong> 1410590154</p>
-                    <p style="margin: 5px 0; font-size: 1rem; color: #865d25;"><strong>Verwysing:</strong> <span
+                    <p style="margin: 5px 0;"><strong data-i18n="eftBranch">Tak kode:</strong> 334810</p>
+                    <p style="margin: 5px 0;"><strong data-i18n="eftType">Tipe Rekening:</strong> <span data-i18n="eftTypeVal">Tjek</span></p>
+                    <p style="margin: 5px 0;"><strong data-i18n="eftAccount">Rekening nommer:</strong> 1410590154</p>
+                    <p style="margin: 5px 0; font-size: 1rem; color: #865d25;"><strong data-i18n="eftRef">Verwysing:</strong> <span
                             id="eft-reference" style="font-weight: bold;"></span></p>
                 </div>
 
-                <button class="btn btn-secondary btn-block" id="close-success-btn">Maak Toe</button>
+                <button class="btn btn-secondary btn-block" id="close-success-btn" data-i18n="close">Maak Toe</button>
             </div>
         </div>
     </div>
 
     <footer>
         <div class="container text-center">
-            <p>&copy; 2026 Bergsig DV. Alle regte voorbehou.</p>
+            <p data-i18n="footer">&copy; 2026 Bergsig DV. Alle regte voorbehou.</p>
         </div>
     </footer>
 
     <!-- Scripts -->
+    <script src="i18n.js"></script>
     <script src="app.js"></script>
 </body>
 

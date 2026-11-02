@@ -1,5 +1,5 @@
 // Replace with your actual Sheet ID
-const SPREADSHEET_ID = '1z-TLfM-PnX3hDCNba9EXBM4CkcRjSJyVN1eSNUbxRq8';
+const SPREADSHEET_ID = '1eCDaWEJ6pKihID_Cdj8tOqAqZfQL2HwgEuGA469U5ME';
 
 function setupPermissions() {
   GmailApp.sendEmail(Session.getActiveUser().getEmail(), "Toestemmings Toets", "As jy hierdie kry, het jou skrip nou die regte toestemming om eposse te stuur.");
@@ -93,22 +93,14 @@ function doGet(e) {
     }
   }
 
-  // -- HAAL BETAALOPSIES OP --
-  let opsiesSheet = sheet.getSheetByName("BetaalOpsies") || sheet.getSheetByName("Betaalopsies") || sheet.getSheetByName("Betaal opsies");
+  // -- HAAL BETAALOPSIES OP (vanaf die "Betaal" oortjie, kolom A, ry 1 = opskrif) --
+  let opsiesSheet = sheet.getSheetByName("Betaal") || sheet.getSheetByName("BetaalOpsies") || sheet.getSheetByName("Betaalopsies") || sheet.getSheetByName("Betaal opsies");
   let betaalOpsies = [];
   if (opsiesSheet) {
     const data = opsiesSheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (data[i][0]) betaalOpsies.push(data[i][0]);
     }
-  }
-
-  if (betaalOpsies.length === 0) {
-    betaalOpsies = [
-      "Snapscan (Betalings sal outomaties opgetel word en geen bewys is nodig nie)",
-      "EFT (Bring die bewys van betaling saam en e-pos aan bergsig.uitreike@gmail.com)",
-      "Kontant / Kaart (Betaal as jy die kos kom afhaal)"
-    ];
   }
 
   // -- HAAL PREFIX OP --
@@ -179,19 +171,92 @@ function doGet(e) {
 
 
 // ==============================================================================
+// E-POS TEKSTE (Afrikaans / Engels)
+// ==============================================================================
+const EPOS_TEKS = {
+  af: {
+    subject: "Jou Bestelling by Uitreike",
+    notSpecified: "Nie gespesifiseer nie",
+    noNotes: "Geen notas nie",
+    howPay: "Hoe wil u betaal?",
+    chooseOption: "Kies een van die opsies hieronder:",
+    option1: "Opsie 1: SnapScan",
+    snapAlt: "SnapScan QR Kode",
+    paySnap: "Betaal met SnapScan App",
+    option2: "Opsie 2: EFT",
+    eftName: "Naam:",
+    eftBranch: "Tak kode:",
+    eftType: "Tipe Rekening:",
+    eftTypeVal: "Tjek",
+    eftAccount: "Rekening nommer:",
+    eftRef: "Verwysing:",
+    shopName: "Uitreike Winkel",
+    confirmed: "Jou bespreking is bevestig!",
+    hello: "Hallo",
+    intro: "Baie dankie vir jou bestelling! Hier is 'n volledige opsomming van jou produkte en bespreekte besonderhede.",
+    details: "Bestelbesonderhede (Nommer:",
+    pickup: "Afhaaltyd:",
+    payment: "Betaalopsie:",
+    notes: "Notas:",
+    yourProducts: "Jou Produkte",
+    colQty: "Aantal",
+    colPrice: "Prys",
+    colTotal: "Totaal",
+    grandTotal: "Groottotaal:",
+    questions: "As jy enige vrae het of veranderinge wil maak, antwoord gerus op hierdie e-pos.",
+    regards: "Groete,",
+    team: "Die Bergsig Uitreike Span"
+  },
+  en: {
+    subject: "Your Order at Uitreike",
+    notSpecified: "Not specified",
+    noNotes: "No notes",
+    howPay: "How would you like to pay?",
+    chooseOption: "Choose one of the options below:",
+    option1: "Option 1: SnapScan",
+    snapAlt: "SnapScan QR Code",
+    paySnap: "Pay with SnapScan App",
+    option2: "Option 2: EFT",
+    eftName: "Name:",
+    eftBranch: "Branch code:",
+    eftType: "Account Type:",
+    eftTypeVal: "Cheque",
+    eftAccount: "Account number:",
+    eftRef: "Reference:",
+    shopName: "Outreach Shop",
+    confirmed: "Your order is confirmed!",
+    hello: "Hello",
+    intro: "Thank you for your order! Here is a full summary of your products and order details.",
+    details: "Order Details (Number:",
+    pickup: "Pickup time:",
+    payment: "Payment option:",
+    notes: "Notes:",
+    yourProducts: "Your Products",
+    colQty: "Qty",
+    colPrice: "Price",
+    colTotal: "Total",
+    grandTotal: "Grand total:",
+    questions: "If you have any questions or would like to make changes, simply reply to this email.",
+    regards: "Kind regards,",
+    team: "The Bergsig Outreach Team"
+  }
+};
+
+// ==============================================================================
 // PRAGTIGE EPOS FUNKSIE
 // ==============================================================================
 function stuurPragtigeEpos(orderNumber, data, customPrefix) {
   var to = data.email;
+  var L = EPOS_TEKS[data.lang] || EPOS_TEKS.af;
 
   var prefix = customPrefix || "Uitreike";
   var verwysing = prefix + orderNumber;
-  var subject = "Jou Bestelling by die Uitreike Winkel (#" + verwysing + ")";
+  var subject = L.subject + " (#" + verwysing + ")";
 
   // Fallbacks as sekere inligting dalk nie verskaf is nie
-  var pickup = data.pickupTime || "Nie gespesifiseer nie";
-  var payment = data.paymentOption || "Nie gespesifiseer nie";
-  var notes = data.notes || "Geen notas nie";
+  var pickup = data.pickupTime || L.notSpecified;
+  var payment = data.paymentOption || L.notSpecified;
+  var notes = data.notes || L.noNotes;
 
   var amountInCents = Math.round(data.total * 100);
 
@@ -202,27 +267,27 @@ function stuurPragtigeEpos(orderNumber, data, customPrefix) {
   // Betalingsblok met beide opsies
   var paymentInstructions = `
     <div style="background-color: #f8f9fa; border: 1px solid #ddd; padding: 15px; margin-top: 20px; border-radius: 4px;">
-      <h3 style="margin: 0 0 10px 0; color: #00879e; font-size: 16px;">Hoe wil u betaal?</h3>
-      <p style="font-size: 14px; margin-bottom: 15px; color: #555;">Kies een van die opsies hieronder:</p>
+      <h3 style="margin: 0 0 10px 0; color: #00879e; font-size: 16px;">${L.howPay}</h3>
+      <p style="font-size: 14px; margin-bottom: 15px; color: #555;">${L.chooseOption}</p>
       
       <!-- SnapScan -->
       <div style="background-color: #ffffff; border: 1px solid #eee; padding: 15px; border-radius: 4px; margin-bottom: 15px; text-align: center;">
-        <h4 style="margin: 0 0 10px 0; color: #333;">Opsie 1: SnapScan</h4>
-        <img src="${qrCodeUrl}" alt="SnapScan QR Kode" style="max-width: 150px; margin: 0 auto; display: block;">
+        <h4 style="margin: 0 0 10px 0; color: #333;">${L.option1}</h4>
+        <img src="${qrCodeUrl}" alt="${L.snapAlt}" style="max-width: 150px; margin: 0 auto; display: block;">
         <p style="margin: 15px 0 0 0;">
-          <a href="${snapscanUrl}" style="display: inline-block; background-color: #0072CE; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 14px;">Betaal met SnapScan App</a>
+          <a href="${snapscanUrl}" style="display: inline-block; background-color: #0072CE; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 14px;">${L.paySnap}</a>
         </p>
       </div>
 
       <!-- EFT -->
       <div style="background-color: #ffffff; border: 1px solid #eee; padding: 15px; border-radius: 4px; text-align: left;">
-        <h4 style="margin: 0 0 10px 0; color: #333;">Opsie 2: EFT</h4>
-        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>Naam:</strong> Durbanville Bergsig</p>
+        <h4 style="margin: 0 0 10px 0; color: #333;">${L.option2}</h4>
+        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>${L.eftName}</strong> Durbanville Bergsig</p>
         <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>Bank:</strong> ABSA Durbanville</p>
-        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>Tak kode:</strong> 334810</p>
-        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>Tipe Rekening:</strong> Tjek</p>
-        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>Rekening nommer:</strong> 1410590154</p>
-        <p style="margin: 8px 0 0 0; font-size: 14px; color: #865d25;"><strong>Verwysing:</strong> <strong style="font-size: 16px;">${verwysing}</strong></p>
+        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>${L.eftBranch}</strong> 334810</p>
+        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>${L.eftType}</strong> ${L.eftTypeVal}</p>
+        <p style="margin: 4px 0; font-size: 14px; color: #555;"><strong>${L.eftAccount}</strong> 1410590154</p>
+        <p style="margin: 8px 0 0 0; font-size: 14px; color: #865d25;"><strong>${L.eftRef}</strong> <strong style="font-size: 16px;">${verwysing}</strong></p>
       </div>
     </div>
   `;
@@ -258,31 +323,31 @@ function stuurPragtigeEpos(orderNumber, data, customPrefix) {
       
       <!-- Koplosie (Header) -->
       <div style="background-color: #2c3e50; color: #ffffff; padding: 30px 20px; text-align: center;">
-        <h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: 1px;">Uitreike Winkel</h1>
-        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Jou bespreking is bevestig!</p>
+        <h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: 1px;">${L.shopName}</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">${L.confirmed}</p>
       </div>
       
       <!-- Inhoud -->
       <div style="padding: 30px 25px;">
-        <p style="font-size: 16px; margin-top: 0; color: #2c3e50;">Hallo <strong>${data.name}</strong>,</p>
-        <p style="font-size: 15px; line-height: 1.6; color: #555555;">Baie dankie vir jou bestelling! Hier is 'n volledige opsomming van jou etes en bespreekte besonderhede.</p>
+        <p style="font-size: 16px; margin-top: 0; color: #2c3e50;">${L.hello} <strong>${data.name}</strong>,</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #555555;">${L.intro}</p>
         
         <div style="background-color: #f8f9fa; border-left: 4px solid #3498db; padding: 15px 20px; margin: 25px 0; border-radius: 0 4px 4px 0;">
-          <h3 style="margin: 0 0 12px 0; color: #2c3e50; font-size: 18px;">Bestelbesonderhede (Nommer: #${verwysing})</h3>
-          <p style="margin: 6px 0; font-size: 14px; color: #555;"><strong>Afhaaltyd:</strong> ${pickup}</p>
-          <p style="margin: 6px 0; font-size: 14px; color: #555;"><strong>Betaalopsie:</strong> ${payment}</p>
-          <p style="margin: 6px 0; font-size: 14px; color: #555;"><strong>Notas:</strong> ${notes}</p>
+          <h3 style="margin: 0 0 12px 0; color: #2c3e50; font-size: 18px;">${L.details} #${verwysing})</h3>
+          <p style="margin: 6px 0; font-size: 14px; color: #555;"><strong>${L.pickup}</strong> ${pickup}</p>
+          <p style="margin: 6px 0; font-size: 14px; color: #555;"><strong>${L.payment}</strong> ${payment}</p>
+          <p style="margin: 6px 0; font-size: 14px; color: #555;"><strong>${L.notes}</strong> ${notes}</p>
           ${paymentInstructions}
         </div>
         
-        <h3 style="color: #2c3e50; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 8px;">Jou Etes</h3>
+        <h3 style="color: #2c3e50; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 8px;">${L.yourProducts}</h3>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
           <thead>
             <tr style="background-color: #f8f9fa;">
               <th style="padding: 12px 10px; text-align: left; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0;">Item</th>
-              <th style="padding: 12px 10px; text-align: center; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0;">Aantal</th>
-              <th style="padding: 12px 10px; text-align: right; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0;">Prys</th>
-              <th style="padding: 12px 10px; text-align: right; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0;">Totaal</th>
+              <th style="padding: 12px 10px; text-align: center; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0;">${L.colQty}</th>
+              <th style="padding: 12px 10px; text-align: right; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0;">${L.colPrice}</th>
+              <th style="padding: 12px 10px; text-align: right; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0;">${L.colTotal}</th>
             </tr>
           </thead>
           <tbody>
@@ -290,16 +355,16 @@ function stuurPragtigeEpos(orderNumber, data, customPrefix) {
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="3" style="padding: 18px 10px; text-align: right; font-weight: 700; font-size: 16px; color: #2c3e50;">Groottotaal:</td>
+              <td colspan="3" style="padding: 18px 10px; text-align: right; font-weight: 700; font-size: 16px; color: #2c3e50;">${L.grandTotal}</td>
               <td style="padding: 18px 10px; text-align: right; font-weight: 700; font-size: 18px; color: #e74c3c;">R${data.total.toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>
         
         <p style="font-size: 14px; line-height: 1.6; color: #777777; text-align: center; margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 25px;">
-          As jy enige vrae het of veranderinge wil maak, antwoord gerus op hierdie e-pos.<br><br>
-          Groete,<br>
-          <strong style="color: #2c3e50;">Die Vinkel en Koljander Span</strong>
+          ${L.questions}<br><br>
+          ${L.regards}<br>
+          <strong style="color: #2c3e50;">${L.team}</strong>
         </p>
       </div>
       
@@ -322,6 +387,7 @@ function stuurPragtigeEpos(orderNumber, data, customPrefix) {
 function toetsMyEpos() {
   // BELANGRIK: Verander hierdie na jou regte e-posadres om die toets te ontvang
   var myEposAdres = "steenkamp@gmail.com";
+  var taal = "af"; // Verander na "en" om die Engelse e-pos te toets
 
   // Fiktiewe data wat presies lyk soos wat die webtuiste sou stuur
   var dummyData = {
@@ -332,6 +398,7 @@ function toetsMyEpos() {
     pickupTime: "17:30",
     paymentOption: "EFT",
     total: 250.00,
+    lang: taal,
     items: [
       {
         name: "Beesstert Potjie",

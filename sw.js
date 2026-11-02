@@ -1,8 +1,9 @@
-const CACHE_NAME = 'vinkel-mark-v3';
+const CACHE_NAME = 'vinkel-mark-v4';
 const urlsToCache = [
   './',
   './index.html',
   './styles.css',
+  './i18n.js',
   './app.js'
 ];
 
